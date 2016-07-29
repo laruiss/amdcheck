@@ -1,0 +1,35 @@
+{
+  "name": "amdcheck",
+  "version": "0.0.1",
+  "description": "Simple checker to find unused paths and dependencies in AMD modules",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "bin": {
+    "amdcheck": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmu-tech/amdcheck.git"
+  },
+  "keywords": [
+    "amd",
+    "dependencies",
+    "check"
+  ],
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "author": "Stanislas Ormières",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pmu-tech/amdcheck/issues"
+  },
+  "homepage": "https://github.com/pmu-tech/amdcheck#readme",
+  "dependencies": {
+    "amdextract": "^2.1.14",
+    "exit": "^0.1.2",
+    "glob-promise": "^1.0.6"
+  }
+}

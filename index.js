@@ -10,17 +10,24 @@ const glob = require('glob-promise')
 const paths = Array.from(process.argv).slice(2)
 
 if (!paths.length) {
+  console.log('Error: No path given')
+  printUsage()
+  exit(1)
+}
+
+if (paths[0].includes('--help') || paths[0].includes('-h')) {
   printUsage()
   exit(0)
 }
 
 function printUsage() {
-  console.log(`
-    Usage: amdcheck <glob> [<glob>, [<glob>, ...]]
+  console.log(`Check unused paths and unused dependencies in AMD modules.
 
-    Example: amdcheck 'lib/**/*.js' 'tests/**/*.js'
+Usage: amdcheck <glob> [<glob>, [<glob>, ...]]
+       amdcheck -h | --help                      display this message
 
-    `);
+Example: amdcheck 'lib/**/*.js' 'tests/**/*.js'
+`);
 }
 
 const globs = paths.map(path => {
@@ -41,8 +48,8 @@ Promise.all(globs)
   }, [])
   .then(files => {
     files.forEach(function processFile(file) {
-      var content = fs.readFileSync(file)
-      var result = amdextract.parse(content)
+      const content = fs.readFileSync(file)
+      const result = amdextract.parse(content)
 
       result.results.forEach(function (r) {
         totalUnusedPaths += r.unusedPaths.length
@@ -60,9 +67,11 @@ Promise.all(globs)
 
     });
 
-    console.log(`Total unused paths: ${totalUnusedPaths} in ${totalFilesWithUnusedPaths} files.`)
-    console.log(`Total unused dependencies: ${totalUnusedDependencies} in ${totalFilesWithUnusedDependencies} files.`)
-    console.log(`Total processed files: ${totalProcessedFiles}`)
+    console.log(`
+Total unused paths: ${totalUnusedPaths} in ${totalFilesWithUnusedPaths} files.
+Total unused dependencies: ${totalUnusedDependencies} in ${totalFilesWithUnusedDependencies} files.
+Total processed files: ${totalProcessedFiles}
+`)
 
     if (totalFilesWithUnusedPaths || totalFilesWithUnusedDependencies) {
       exit(1)

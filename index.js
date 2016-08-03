@@ -9,6 +9,35 @@ const glob = require('glob-promise')
 
 let paths = Array.from(process.argv).slice(2)
 
+const confAmdcheck = getConf(process.cwd())
+
+const excludedPaths = confAmdcheck && confAmdcheck.excludedPaths
+                        ? confAmdcheck.excludedPaths
+                        : []
+
+function getConf(baseDir) {
+
+  const confAmdcheckFilePath = baseDir + '/amdcheck.json'
+  const confAmdcheckFileExists = fs.existsSync(confAmdcheckFilePath)
+
+  if (confAmdcheckFileExists) {
+    try {
+      const confAmdcheck = require(confAmdcheckFilePath)
+      console.info(`\nUsing conf from ${confAmdcheckFilePath}`)
+    } catch (e) {
+      console.error(`${confAmdcheckFilePath} is not a valid JSON file!`)
+    }
+  }
+
+  const pkg = require(baseDir + '/package.json')
+  const confAmdcheck = pkg.config
+                         ? pkg.config.amdcheck
+                         : {}
+
+  console.info('Using conf from', 'package.json')
+  return confAmdcheck
+}
+
 const statsOnly = paths.some((arg) => {
   return arg === '-s' || arg === '--stats-only'
 })
@@ -31,17 +60,6 @@ if (paths[0].includes('--help') || paths[0].includes('-h')) {
 function printUsage() {
   console.log(`Check unused paths and unused dependencies in AMD modules.
 
-Usage: amdcheck [options] <glob> [<glob>, [<glob>, ...]]
-
-  options:
-    -h, --help
-            display this message
-
-    -s, --stats-only
-            display only stats (total unused paths, total unused dependencies,
-            total processed files)
-
-Example: amdcheck 'lib/**/*.js' 'tests/**/*.js'
 `);
 }
 
@@ -74,10 +92,14 @@ Promise.all(globs)
       const error = {}
 
       result.results.forEach(function (r) {
-        totalUnusedPaths += r.unusedPaths.length
-        if (r.unusedPaths.length > 0) {
+        const unusedPaths = r.unusedPaths.filter((path) => {
+          return !excludedPaths.includes(path)
+        })
+
+        totalUnusedPaths += unusedPaths.length
+        if (unusedPaths.length > 0) {
           totalFilesWithUnusedPaths++
-          error.unusedPaths = r.unusedPaths
+          error.unusedPaths = unusedPaths
         }
 
         totalUnusedDependencies += r.unusedDependencies.length
